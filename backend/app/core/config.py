@@ -7,6 +7,7 @@ from pydantic import (
     BeforeValidator,
     HttpUrl,
     PostgresDsn,
+    MySQLDsn,
     computed_field,
     model_validator,
 )
@@ -48,11 +49,30 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str
     SENTRY_DSN: HttpUrl | None = None
+
+    MYSQL_SERVER: str
+    MYSQL_PORT: int = 3306
+    MYSQL_USER: str
+    MYSQL_PASSWORD: str
+    MYSQL_DB: str = ""
+
     POSTGRES_SERVER: str
     POSTGRES_PORT: int = 5432
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str = ""
+
+    @computed_field  # type: ignore[misc]
+    @property
+    def MYSQL_DATABASE_URI(self) -> MySQLDsn:
+        return AnyUrl.build(
+            scheme="mysql+pymysql",
+            username=self.MYSQL_USER,
+            password=self.MYSQL_PASSWORD,
+            host=self.MYSQL_SERVER,
+            port=self.MYSQL_PORT,
+            path=self.MYSQL_DB,
+        )
 
     @computed_field  # type: ignore[misc]
     @property
